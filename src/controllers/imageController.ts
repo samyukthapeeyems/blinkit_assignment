@@ -1,21 +1,72 @@
 import { Request, Response } from "express";
 import Image from "../models/Image";
+import fs from 'fs';
+import User from "../models/User";
 
 export const uploadImage = async (req: Request, res: Response) => {
   try {
-    const { user, tags, description } = req.body;
-    const imagePath = req.file?.path; // Multer stores the file in req.file
+    const { tags, description } = req.body;
+    const imagePath = req.file?.filename;
 
-    // Save the image to MongoDB
-    const newImage = await Image.create({
-      user,
-      tags,
-      description,
-      imagePath,
+    const newImage = new Image({
+      user: req.user._id,
+      imagePath: imagePath,
+      description: description,
+      tags: tags ? tags.split(',') : [],
     });
 
+    await newImage.save()
+
     res.status(201).json(newImage);
-  } catch (error) {
+  } catch (error: any) {
+    console.log(error.message)
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
+
+
+export const deleteImage = async (req: Request, res: Response) => {
+  const imageId = req.params.id;
+  try {
+    const image = await Image.findById(imageId);
+    if (!image) {
+      return res.status(404).json({ message: 'Image not found' });
+    }
+    if (
+      image.user.toString() !== req.user?._id.toString() &&
+      req.user?.role !== 'admin'
+    ) {
+      return res.status(403).json({
+        message: 'You are not authorized to delete this image',
+      });
+    }
+    fs.unlinkSync(image.imagePath);
+    await image.deleteOne();
+
+    res.json({ message: 'Image deleted successfully' });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+}
+
+export const searchImage = async (req: Request, res: Response) => {
+  const usernameQuery = req.params.username;
+  try {
+
+    const users = await User.find({ username: { $regex: usernameQuery, $options: 'i' } });
+    if (!users.length) {
+      return res.status(404).json({ message: 'No users found matching the search query' });
+    }
+
+    const userIds = users.map(user => user._id);
+
+    const images = await Image.find({ user: { $in: userIds } });
+    if (!images.length) {
+      return res.status(404).json({ message: 'No images found for the users matching the search query' });
+    }
+
+    res.json(images);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+}

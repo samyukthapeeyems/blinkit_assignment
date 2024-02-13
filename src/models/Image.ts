@@ -1,22 +1,26 @@
 // models/Image.ts
-import mongoose, { Schema, Document } from 'mongoose';
+import { Schema, Document, model } from 'mongoose';
+import { IUser } from './User';
 
-export interface IImage extends Document {
-  user: string;
+interface IImage extends Document {
+  user: IUser['_id'];
   timestamp: Date;
-  tags: string[];
-  description: string;
+  tags?: string[];
+  description?: string;
   upvotes: number;
   downvotes: number;
+  imagePath: string;
 }
 
-const ImageSchema: Schema = new Schema({
-  user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+const ImageSchema = new Schema({
+  user: { type: Schema.Types.ObjectId, ref: 'User' },
   timestamp: { type: Date, default: Date.now },
-  tags: [{ type: String }],
-  description: { type: String },
+  tags: [String],
+  description: String,
   upvotes: { type: Number, default: 0 },
   downvotes: { type: Number, default: 0 },
+  imagePath: String,
 });
 
-export default mongoose.model<IImage>('Image', ImageSchema);
+export default model<IImage>('Image', ImageSchema);
+
