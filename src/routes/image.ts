@@ -1,5 +1,5 @@
 import express from "express";
-import { deleteImage, searchImage, uploadImage } from "../controllers/imageController";
+import { deleteImage, searchImage, uploadImage, getAllImages } from "../controllers/imageController";
 import { authMiddleware, authorizeRole } from "../middleware/middleware";
 import multer from "multer";
 import path from "path";
@@ -25,7 +25,7 @@ const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilt
 
 const upload = multer({ storage: storage });
 
-
+router.get("/", authMiddleware, getAllImages)
 router.post("/upload", authMiddleware, upload.single("image"), uploadImage);
 router.delete("/:id", authMiddleware, deleteImage);
 router.get("/search/:username", authMiddleware, searchImage);

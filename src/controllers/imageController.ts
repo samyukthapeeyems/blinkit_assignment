@@ -3,13 +3,30 @@ import Image from "../models/Image";
 import fs from 'fs';
 import User from "../models/User";
 
+
+export const getAllImages = async (req: Request, res: Response) => {
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
+
+  try {
+    const images = await Image.find()
+      .sort({ timestamp: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    res.json(images);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+}
+
 export const uploadImage = async (req: Request, res: Response) => {
   try {
-    const { tags, description } = req.body;
-    const imagePath = req.file?.filename;
+    const { user, tags, description } = req.body;
+    const imagePath = req.file?.path;
 
     const newImage = new Image({
-      user: req.user._id,
+      user: user._id,
       imagePath: imagePath,
       description: description,
       tags: tags ? tags.split(',') : [],
@@ -18,8 +35,7 @@ export const uploadImage = async (req: Request, res: Response) => {
     await newImage.save()
 
     res.status(201).json(newImage);
-  } catch (error: any) {
-    console.log(error.message)
+  } catch (error) {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
