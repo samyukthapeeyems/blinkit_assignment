@@ -23,6 +23,7 @@ const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilt
   }
 };
 
+
 const upload = multer({ storage: storage });
 
 router.get("/", authMiddleware, getAllImages)
