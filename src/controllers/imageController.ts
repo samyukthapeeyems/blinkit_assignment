@@ -22,11 +22,11 @@ export const getAllImages = async (req: Request, res: Response) => {
 
 export const uploadImage = async (req: Request, res: Response) => {
   try {
-    const { user, tags, description } = req.body;
-    const imagePath = req.file?.path;
+    const { tags, description } = req.body;
+    const imagePath = req.file?.filename;
 
     const newImage = new Image({
-      user: user._id,
+      user: req.user._id,
       imagePath: imagePath,
       description: description,
       tags: tags ? tags.split(',') : [],
@@ -36,6 +36,7 @@ export const uploadImage = async (req: Request, res: Response) => {
 
     res.status(201).json(newImage);
   } catch (error) {
+    console.log(error)
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };

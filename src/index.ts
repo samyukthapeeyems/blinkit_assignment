@@ -7,12 +7,15 @@ import imageRoutes from "./routes/image";
 import keys from "./config/keys";
 import { jwtStrategy, localStrategy } from "./middleware/strategy"
 import path from "path";
+import cors from "cors";
 
 dotenv.config();
 
 const app = express();
 
 app.use(express.json());
+app.use(cors())
+
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, '../uploads')))
 console.log(path.join(__dirname, '../uploads'))
